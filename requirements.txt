@@ -1,5 +1,9 @@
 python-binance
 
+zenodo_get
+
+pyyaml
+
 bandit
 black
 flake8

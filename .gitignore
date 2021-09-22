@@ -2,13 +2,6 @@
 .coverage
 *__pycache__*
 pyvenv.cfg
-config.yml
-orders_data.json
-invest_amounts.json
-logs
-data/configs
-data/cache
-data/neural_network
 *.db
 *.zip
 *.pem

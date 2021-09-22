@@ -1,7 +1,6 @@
 ROOT_DIR=.
 SRC_DIR=src
 TEST_DIR=tests
-DATA_DIR=data
 BANDIT_CFG=bandit.yml
 
 all:
@@ -29,7 +28,7 @@ lint-isort:
 
 lint-bandit:
 	@echo Lint bandit
-	@bandit -qr $(SRC_DIR) $(TEST_DIR) $(DATA_DIR) -c $(BANDIT_CFG)
+	@bandit -qr $(SRC_DIR) $(TEST_DIR) -c $(BANDIT_CFG)
 .PHONY: lint-bandit
 
 lint-pylint:
@@ -39,7 +38,7 @@ lint-pylint:
 
 lint-black:
 	@echo Lint black
-	@black $(SRC_DIR) $(TEST_DIR) $(DATA_DIR)
+	@black $(SRC_DIR) $(TEST_DIR)
 .PHONY: lint-black
 
 lint: \
