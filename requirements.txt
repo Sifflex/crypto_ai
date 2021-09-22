@@ -1,0 +1,7 @@
+python-binance
+
+bandit
+black
+flake8
+isort
+pylint
