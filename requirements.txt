@@ -9,3 +9,10 @@ black
 flake8
 isort
 pylint
+
+matplotlib
+numpy
+pandas
+
+torch
+torchvision
