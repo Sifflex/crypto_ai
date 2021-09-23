@@ -1,5 +1,6 @@
 """Module used to build the dataset"""
 
+import csv
 import client
 import json
 import numpy as np
@@ -16,10 +17,28 @@ crypto_pairs = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT', 'XRPUSDT', 'ADAUSDT
 
 def build_dataset():
     """Build dataset by downloading from Binance API"""
-    print(client.CLIENT)
-    test1 = open(r"test.json", 'w+')
-    print("Downloading\n")
-    klines = client.CLIENT.get_klines(symbol="BTCUSDT", interval=client.CLIENT.KLINE_INTERVAL_1MINUTE, startTime=0, limit=2)
-    res = client.CLIENT.get_exchange_info()
-    res_object = json.dumps(res, indent=4)
-    test1.write(res_object)
+
+    # Get the current server time
+    server_time = client.CLIENT.get_server_time()
+    for cp in crypto_pairs:
+        print(cp)
+        filename = 'src/data/csv' + cp + '.csv'
+
+        tmp = []
+
+        # Get the first ever kline time
+        first_kline = client.CLIENT.get_klines(symbol=cp, interval=client.CLIENT.KLINE_INTERVAL_1MINUTE, startTime=0, limit=1)
+        start_time = first_kline[0][1]
+        steps = 1000
+        while start_time != server_time:
+            if (start_time + steps > server_time):
+                steps = server_time - start_time - 1
+            klines = client.CLIENT.get_klines(symbol=cp, interval=client.CLIENT.KLINE_INTERVAL_1MINUTE, startTime=start_time, limit=steps)  
+            for k in klines:
+                tmp.append([k[0], k[1], k[2], k[3], k[4], k[6]])
+        
+        with open(filename, 'w+', newline='') as csvfile:
+            csv_writer = csv.writer(csvfile, delimiter=',')
+            csv_writer.writerows(tmp)
+        
+        print(cp, ' done')
