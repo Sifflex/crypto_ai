@@ -11,5 +11,6 @@ if __name__ == "__main__":
     load_config()
     load_client()
 
+
     if args.build_dataset:
         build_dataset()
