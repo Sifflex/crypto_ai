@@ -11,4 +11,4 @@ def load_client():
     """Make global_client a global variable"""
 
     global CLIENT
-    CLIENT = Client(config.CONFIG["api_key"], config.CONFIG["api_secret"])
+    CLIENT = Client(config.CONFIG["API_KEY"], config.CONFIG["API_SECRET"])
