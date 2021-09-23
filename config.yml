@@ -1,2 +1,17 @@
-API_KEY: insert yours
-API_SECRET: insert yours
+API_KEY: insert_yours
+API_SECRET: insert_yours
+
+blacklisted_symbols:
+  - BCCUSDT
+  - BCHABCUSDT
+  - BCHSVUSDT
+  - BUSDUSDT
+  - EURUSDT
+  - PAXGUSDT
+  - PAXUSDT
+  - SUSDUSDT
+  - TUSDUSDT
+  - USDCUSDT
+  - USDPUSDT
+  - USDSBUSDT
+  - USDSUSDT

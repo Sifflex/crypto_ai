@@ -5,3 +5,5 @@ pyvenv.cfg
 *.db
 *.zip
 *.pem
+
+src/data/csv
