@@ -12,4 +12,3 @@ def load_client():
 
     global CLIENT
     CLIENT = Client(config.CONFIG["API_KEY"], config.CONFIG["API_SECRET"])
-    
