@@ -8,7 +8,7 @@ import pandas as pd
 from plotly.graph_objs import Candlestick, Figure
 
 import client
-from helpers import get_all_usdt_symbols
+from helper import get_all_usdt_symbols
 
 warnings.filterwarnings("ignore")
 
@@ -106,11 +106,11 @@ def create_pytorch_dataset(symbol, interval, split_ratio=0.7):
     open_btc = btc_df["BTC Open Time"][0]
     open_sym = sym_df["Open Time"][0]
     if open_btc < open_sym:
-        btc_df = btc_df[(open_sym - open_btc) // 60000:]
+        btc_df = btc_df[(open_sym - open_btc) // 60000 :]
         btc_df = btc_df.reset_index()
         btc_df = btc_df.drop("index", 1)
     elif open_btc != open_sym:
-        sym_df = sym_df[(open_btc - open_sym) // 60000:]
+        sym_df = sym_df[(open_btc - open_sym) // 60000 :]
         sym_df = sym_df.reset_index()
         sym_df = sym_df.drop("index", 1)
 
