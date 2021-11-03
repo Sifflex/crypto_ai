@@ -29,7 +29,7 @@ def build_dataset():
                 "src",
                 "data",
                 "csv",
-                ("1MIN" if it == client.CLIENT.KLINE_INTERVAL_1MINUTE else "15MIN")
+                ("1MIN_" if it == client.CLIENT.KLINE_INTERVAL_1MINUTE else "15MIN_")
                 + cp
                 + ".csv",
             )
@@ -96,10 +96,10 @@ def create_pytorch_dataset(symbol, interval, split_ratio=0.7):
     ]
     sym_names = ["Open Time", "Open", "High", "Low", "Close", "Close time"]
     btc_df = pd.read_csv(
-        "src/data/csv/" + str_interval + "BTCUSDT.csv", names=btc_names
+        "src/data/csv/" + str_interval + "_" + "BTCUSDT.csv", names=btc_names
     )
     sym_df = pd.read_csv(
-        "src/data/csv/" + str_interval + symbol + ".csv", names=sym_names
+        "src/data/csv/" + str_interval + "_" + symbol + ".csv", names=sym_names
     )
 
     # Resizing the dataframes in order to have the same first Open Time
