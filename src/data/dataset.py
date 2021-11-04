@@ -8,7 +8,7 @@ import pandas as pd
 from plotly.graph_objs import Candlestick, Figure
 
 import client
-from helper import get_all_usdt_symbols
+from client import get_all_usdt_symbols
 
 warnings.filterwarnings("ignore")
 
@@ -138,6 +138,32 @@ def create_pytorch_dataset(symbol, interval, split_ratio=0.7):
     train = btc_sym_df[:index_split]
     test = btc_sym_df[index_split:]
     return (train, test)
+
+
+def load_dataset():
+    """Load all csv files into one dataframe with 3 levels"""
+
+    csv_folder = Path("src", "data", "csv")
+    col_names = ["Open Time", "Open", "High", "Low", "Close", "Close time"]
+    intervals = ["1MIN", "15MIN"]
+    symbols = get_all_usdt_symbols()
+
+    dfs = []
+
+    for symbol in symbols:
+        symbol_dfs = []
+        for interval in intervals:
+            symbol_interval_path = csv_folder / f"{interval}_{symbol}.csv"
+            if not symbol_interval_path.exists():
+                break
+            symbol_dfs.append(pd.read_csv(symbol_interval_path, names=col_names))
+
+        if len(symbol_dfs) == 0:
+            continue
+
+        dfs.append(pd.concat(symbol_dfs, keys=intervals, axis=1))
+
+    return pd.concat(dfs, keys=symbols, axis=1)
 
 
 def plot_sym_train_test(train, test):
