@@ -20,7 +20,6 @@ if __name__ == "__main__":
         build_dataset()
 
     df = load_dataset()
-    print(df.memory_usage())
 
     # (train, test) = create_pytorch_dataset(
     #     "ADAUSDT", client.CLIENT.KLINE_INTERVAL_1MINUTE
