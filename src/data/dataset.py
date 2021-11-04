@@ -8,7 +8,7 @@ import pandas as pd
 from plotly.graph_objs import Candlestick, Figure
 
 import client
-from helpers import get_all_usdt_symbols
+from helper import get_all_usdt_symbols
 
 warnings.filterwarnings("ignore")
 
@@ -23,26 +23,30 @@ def build_dataset():
 
     # Get the current server time
     server_time = client.CLIENT.get_server_time()["serverTime"]
-    for it in intervals:
-        for cp in get_all_usdt_symbols():
+    for interval in intervals:
+        for symbol in get_all_usdt_symbols():
             path = Path(
                 "src",
                 "data",
                 "csv",
-                ("1MIN_" if it == client.CLIENT.KLINE_INTERVAL_1MINUTE else "15MIN_")
-                + cp
+                (
+                    "1MIN_"
+                    if interval == client.CLIENT.KLINE_INTERVAL_1MINUTE
+                    else "15MIN_"
+                )
+                + symbol
                 + ".csv",
             )
 
             if path.exists():
                 continue
 
-            print(cp)
+            print(symbol)
             tmp = []
 
             # Get the first ever kline time
             first_kline = client.CLIENT.get_klines(
-                symbol=cp, interval=it, startTime=0, limit=1
+                symbol=symbol, interval=interval, startTime=0, limit=1
             )
             start_time = int(first_kline[0][0])
             act_time = start_time
@@ -54,30 +58,22 @@ def build_dataset():
                     steps = server_time - act_time - 1
                 print(f"{round((current_steps / total_steps) * 100, 1)} %", end="\r")
                 klines = client.CLIENT.get_klines(
-                    symbol=cp, interval=it, startTime=act_time, limit=steps
+                    symbol=symbol, interval=interval, startTime=act_time, limit=steps
                 )
                 for k in klines:
-                    """
-                    0: Open time
-                    1: Open
-                    2: High
-                    3: Low
-                    4: Close
-                    6: Close time
-                    """
                     tmp.append([k[0], k[1], k[2], k[3], k[4], k[6]])
                 act_time += (
                     steps
                     * 1000
                     * 60
-                    * (1 if it == client.CLIENT.KLINE_INTERVAL_1MINUTE else 15)
+                    * (1 if interval == client.CLIENT.KLINE_INTERVAL_1MINUTE else 15)
                 )
             with open(path, "w+", newline="") as csvfile:
                 csv_writer = csv.writer(csvfile, delimiter=",")
                 csv_writer.writerows(tmp)
 
             print("100 %")
-            print(cp, " done")
+            print(symbol, " done")
 
 
 def create_pytorch_dataset(symbol, interval, split_ratio=0.7):
@@ -106,21 +102,19 @@ def create_pytorch_dataset(symbol, interval, split_ratio=0.7):
     open_btc = btc_df["BTC Open Time"][0]
     open_sym = sym_df["Open Time"][0]
     if open_btc < open_sym:
-        btc_df = btc_df[(open_sym - open_btc) // 60000:]
-        btc_df = btc_df.reset_index()
-        btc_df = btc_df.drop("index", 1)
-    elif open_btc != open_sym:
-        sym_df = sym_df[(open_btc - open_sym) // 60000:]
-        sym_df = sym_df.reset_index()
-        sym_df = sym_df.drop("index", 1)
+        btc_start_index = btc_df.index[btc_df["BTC Open Time"] == open_sym][0]
+        btc_df = btc_df[btc_start_index:]
+        btc_df.reset_index(drop=True, inplace=True)
+    elif open_btc > open_sym:
+        sym_start_index = sym_df[sym_df["Open Time"] == open_btc][0]
+        sym_df = sym_df[sym_start_index:]
+        sym_df.reset_index(drop=True, inplace=True)
 
     # Same for the last Open Time
-    len_btc_df = len(btc_df)
-    len_sym_df = len(sym_df)
-    if len_btc_df < len_sym_df:
-        sym_df = sym_df[:len_btc_df]
+    if len(btc_df) < len(sym_df):
+        sym_df = sym_df[: len(btc_df)]
     else:
-        btc_df = btc_df[:len_sym_df]
+        btc_df = btc_df[: len(sym_df)]
 
     btc_sym_df = btc_df.join(sym_df)
     btc_sym_df = btc_sym_df.drop("BTC Open Time", 1)
@@ -147,6 +141,8 @@ def create_pytorch_dataset(symbol, interval, split_ratio=0.7):
 
 
 def plot_sym_train_test(train, test):
+    """Plot train test for the given train and test data"""
+
     data = [
         Candlestick(
             x=train["Open Time"],
