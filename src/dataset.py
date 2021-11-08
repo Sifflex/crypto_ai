@@ -9,6 +9,7 @@ from plotly.graph_objs import Candlestick, Figure
 
 import client
 from client import get_all_usdt_symbols
+from logger import log
 
 warnings.filterwarnings("ignore")
 
@@ -40,7 +41,7 @@ def build_dataset():
             if path.exists():
                 continue
 
-            print(symbol)
+            log(f"Downloading data for {symbol}")
             tmp = []
 
             # Get the first ever kline time
