@@ -6,4 +6,4 @@ pyvenv.cfg
 *.zip
 *.pem
 
-src/data/csv
+data/
