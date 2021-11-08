@@ -7,22 +7,23 @@ import config
 CLIENT = None
 
 
-def load_client():
+def _load_client():
     """Make global_client a global variable"""
 
     global CLIENT
-    CLIENT = Client(config.CONFIG["API_KEY"], config.CONFIG["API_SECRET"])
+    if not CLIENT:
+        print("Initializing client")
+        CLIENT = Client(config.CONFIG["API_KEY"], config.CONFIG["API_SECRET"])
 
 
 def get_all_usdt_symbols():
     """Return all existing symbols related to USDT that are not blacklisted"""
 
+    _load_client()
+
     symbols = []
-
     data = CLIENT.get_exchange_info()
-
     for sym in data["symbols"]:
-
         symbol = sym["symbol"]
 
         if (

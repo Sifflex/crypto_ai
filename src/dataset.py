@@ -26,7 +26,6 @@ def build_dataset():
     for interval in intervals:
         for symbol in get_all_usdt_symbols():
             path = Path(
-                "src",
                 "data",
                 "csv",
                 (
@@ -92,21 +91,22 @@ def create_pytorch_dataset(symbol, interval, split_ratio=0.7):
     ]
     sym_names = ["open time", "open", "high", "low", "close", "close time"]
     btc_df = pd.read_csv(
-        "src/data/csv/" + str_interval + "_" + "BTCUSDT.csv", names=btc_names
+        Path("data", "csv", f"{str_interval}_BTCUSDT.csv"), names=btc_names
     )
     sym_df = pd.read_csv(
-        "src/data/csv/" + str_interval + "_" + symbol + ".csv", names=sym_names
+        Path("data", "csv", f"{str_interval}_{symbol}.csv"), names=btc_names
     )
+    pd.read_csv("data/csv/" + str_interval + "_" + symbol + ".csv", names=sym_names)
 
     # Resizing the dataframes in order to have the same first Open Time
-    open_btc = btc_df["BTC Open Time"][0]
-    open_sym = sym_df["Open Time"][0]
+    open_btc = btc_df["BTC open time"][0]
+    open_sym = sym_df["open time"][0]
     if open_btc < open_sym:
-        btc_start_index = btc_df.index[btc_df["BTC Open Time"] == open_sym][0]
+        btc_start_index = btc_df.index[btc_df["BTC open time"] == open_sym][0]
         btc_df = btc_df[btc_start_index:]
         btc_df.reset_index(drop=True, inplace=True)
     elif open_btc > open_sym:
-        sym_start_index = sym_df[sym_df["Open Time"] == open_btc][0]
+        sym_start_index = sym_df[sym_df["open time"] == open_btc][0]
         sym_df = sym_df[sym_start_index:]
         sym_df.reset_index(drop=True, inplace=True)
 
@@ -117,20 +117,17 @@ def create_pytorch_dataset(symbol, interval, split_ratio=0.7):
         btc_df = btc_df[: len(sym_df)]
 
     btc_sym_df = btc_df.join(sym_df)
-    btc_sym_df = btc_sym_df.drop("BTC Open Time", 1)
-    btc_sym_df = btc_sym_df.drop("BTC Close Time", 1)
+    btc_sym_df = btc_sym_df.drop("BTC open time", 1)
     btc_sym_df = btc_sym_df[
         [
-            "open time",
             "BTC open",
             "BTC high",
             "BTC low",
             "BTC close",
             "open",
-            "oigh",
+            "high",
             "low",
             "close",
-            "close time",
         ]
     ]
 
@@ -143,30 +140,28 @@ def create_pytorch_dataset(symbol, interval, split_ratio=0.7):
 def load_dataset():
     """Load all csv files into one dataframe with 3 levels"""
 
-    csv_folder = Path("src", "data", "csv")
+    csv_folder = Path("data", "csv")
     col_names = ["open time", "open", "high", "low", "close", "close time"]
     intervals = ["1MIN", "15MIN"]
-    symbols = get_all_usdt_symbols()
+    symbols = get_all_usdt_symbols()[:2]
 
-    symbol_dfs = []
+    df = pd.DataFrame()
     for symbol in symbols:
-
-        interval_dfs = []
         for interval in intervals:
             symbol_interval_path = csv_folder / f"{interval}_{symbol}.csv"
-            interval_dfs.append(pd.read_csv(symbol_interval_path, names=col_names))
+            sub_df = pd.read_csv(symbol_interval_path, names=col_names)
+            sub_df["symbol"] = symbol
+            sub_df["interval"] = interval
+            df = df.append(sub_df)
 
-        symbol_dfs.append(pd.concat(interval_dfs, keys=intervals))
+    df = df.set_index(["symbol", "interval", "open time"])
+    df = df.sort_index(level=0, ascending=True)
 
-    df = pd.concat(symbol_dfs, keys=symbols)
-
-    df.index.set_names(["symbol", "interval", "index"], inplace=True)
-    df["open time"] = df["open time"].astype("uint64")
-    df["close time"] = df["close time"].astype("uint64")
     df["open"] = df["open"].astype("float32")
     df["high"] = df["high"].astype("float32")
     df["low"] = df["low"].astype("float32")
     df["close"] = df["close"].astype("float32")
+    del df["close time"]
 
     return df
 
@@ -176,7 +171,6 @@ def plot_sym_train_test(train, test):
 
     data = [
         Candlestick(
-            x=train["open Time"],
             open=train["open"],
             high=train["high"],
             low=train["low"],
@@ -184,7 +178,6 @@ def plot_sym_train_test(train, test):
             name="train",
         ),
         Candlestick(
-            x=test["open Time"],
             open=test["open"],
             high=test["high"],
             low=test["low"],

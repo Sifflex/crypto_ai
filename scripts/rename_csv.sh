@@ -1,6 +1,6 @@
 # /usr/bin/sh
 
-DATA_DIR="src/data/csv"
+DATA_DIR="data/csv"
 
 for path in ${DATA_DIR}/*; do
     IFS='/' read -ra ADDR <<< "$path"
