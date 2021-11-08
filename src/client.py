@@ -3,6 +3,7 @@
 from binance.client import Client
 
 import config
+from logger import log
 
 CLIENT = None
 
@@ -12,7 +13,7 @@ def _load_client():
 
     global CLIENT
     if not CLIENT:
-        print("Initializing client")
+        log("Initializing client")
         CLIENT = Client(config.CONFIG["API_KEY"], config.CONFIG["API_SECRET"])
 
 
