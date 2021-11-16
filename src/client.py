@@ -8,19 +8,19 @@ from logger import log
 CLIENT = None
 
 
-def _load_client():
+def load_client():
     """Make global_client a global variable"""
 
     global CLIENT
     if not CLIENT:
-        log("Initializing client")
+        log("Connecting to Binance")
         CLIENT = Client(config.CONFIG["API_KEY"], config.CONFIG["API_SECRET"])
 
 
 def get_all_usdt_symbols():
     """Return all existing symbols related to USDT that are not blacklisted"""
 
-    _load_client()
+    load_client()
 
     symbols = []
     data = CLIENT.get_exchange_info()

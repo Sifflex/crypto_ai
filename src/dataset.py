@@ -16,6 +16,9 @@ warnings.filterwarnings("ignore")
 
 def build_dataset():
     """Build dataset by downloading from Binance API"""
+
+    client.load_client()
+
     # Kline intervals we will be working with
     intervals = [
         client.CLIENT.KLINE_INTERVAL_1MINUTE,
@@ -144,7 +147,8 @@ def load_dataset():
     csv_folder = Path("data", "csv")
     col_names = ["open time", "open", "high", "low", "close", "close time"]
     intervals = ["1MIN", "15MIN"]
-    symbols = get_all_usdt_symbols()[:2]
+    # symbols = get_all_usdt_symbols()
+    symbols = ["C98USDT", "RENUSDT"]
 
     df = pd.DataFrame()
     for symbol in symbols:

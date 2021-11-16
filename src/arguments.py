@@ -15,4 +15,12 @@ def parse_args():
         help="build dataset from Binance API",
     )
 
+    parser.add_argument(
+        "-s",
+        "--simulate",
+        dest="simulate",
+        action="store_true",
+        help="run simulation",
+    )
+
     return parser.parse_args()
