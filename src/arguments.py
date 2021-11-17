@@ -15,4 +15,11 @@ def parse_args():
         help="build dataset from Binance API",
     )
 
+    parser.add_argument(
+        "--plot",
+        dest="plot",
+        action="store_true",
+        help="plot a certain symbol",
+    )
+
     return parser.parse_args()
