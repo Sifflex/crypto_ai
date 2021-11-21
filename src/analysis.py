@@ -16,7 +16,7 @@ def sum_up_data(df, symbol, interval):
     values = df.loc[symbol, interval, :].index.get_level_values(2).unique().to_numpy(dtype=np.uint64)
     res = np.empty([0, 5])
     for i in range(0, values.shape[0], ratio):
-       	tmp = df.loc[symbol, interval, values[i]:values[min(i + ratio - 1, len(values) - 1)]]
+        tmp = df.loc[symbol, interval, values[i]:values[min(i + ratio - 1, len(values) - 1)]]
         to_add = np.array(
                 [
                     values[i],
@@ -38,7 +38,6 @@ def sum_up_data(df, symbol, interval):
             "Close",
         ],
     )
-
 
 def plot_sym_train_test(df, split_ratio):
     df_copy = df.copy()

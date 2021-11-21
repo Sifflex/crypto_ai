@@ -144,7 +144,7 @@ def load_dataset():
     csv_folder = Path("data", "csv")
     col_names = ["open time", "open", "high", "low", "close", "close time"]
     intervals = ["1MIN", "15MIN"]
-    symbols = get_all_usdt_symbols()[:5]
+    symbols = get_all_usdt_symbols()[:1]
 
     df = pd.DataFrame()
     current_symbol = 0
