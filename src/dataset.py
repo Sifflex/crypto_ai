@@ -144,16 +144,22 @@ def load_dataset():
     csv_folder = Path("data", "csv")
     col_names = ["open time", "open", "high", "low", "close", "close time"]
     intervals = ["1MIN", "15MIN"]
-    symbols = get_all_usdt_symbols()[:2]
+    symbols = get_all_usdt_symbols()[:5]
 
     df = pd.DataFrame()
+    current_symbol = 0
+    total_symbols = len(symbols)
     for symbol in symbols:
+        print(f"{round((current_symbol / total_symbols) * 100, 1)} %", end="\r")
         for interval in intervals:
             symbol_interval_path = csv_folder / f"{interval}_{symbol}.csv"
             sub_df = pd.read_csv(symbol_interval_path, names=col_names)
             sub_df["symbol"] = symbol
             sub_df["interval"] = interval
             df = df.append(sub_df)
+        current_symbol += 1
+    print('100%      ')
+
 
     df = df.set_index(["symbol", "interval", "open time"])
     df = df.sort_index(level=0, ascending=True)
@@ -165,27 +171,3 @@ def load_dataset():
     del df["close time"]
 
     return df
-
-
-def plot_sym_train_test(train, test):
-    """Plot train test for the given train and test data"""
-
-    data = [
-        Candlestick(
-            open=train["open"],
-            high=train["high"],
-            low=train["low"],
-            close=train["close"],
-            name="train",
-        ),
-        Candlestick(
-            open=test["open"],
-            high=test["high"],
-            low=test["low"],
-            close=test["close"],
-            name="test",
-        ),
-    ]
-
-    figure = Figure(data=data)
-    figure.show()

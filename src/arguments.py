@@ -18,7 +18,6 @@ def parse_args():
     parser.add_argument(
         "--plot",
         dest="plot",
-        action="store_true",
         help="plot a certain symbol",
     )
 

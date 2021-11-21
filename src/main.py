@@ -4,7 +4,7 @@ import client
 from analysis import plot_sym_train_test, sum_up_data
 from arguments import parse_args
 from config import load_config
-from data.dataset import build_dataset, create_pytorch_dataset
+from dataset import build_dataset, create_pytorch_dataset, load_dataset
 from helper import build_architecture
 
 if __name__ == "__main__":
@@ -17,11 +17,11 @@ if __name__ == "__main__":
     if args.build_dataset:
         build_dataset()
 
-    (train, test) = create_pytorch_dataset(
-        "ADAUSDT", client.CLIENT.KLINE_INTERVAL_1MINUTE
-    )
+    dataset = load_dataset()
+    
+
+    split_ratio = 0.7
 
     if args.plot:
-        show_train = sum_up_data(train, client.CLIENT.KLINE_INTERVAL_1MINUTE)
-        show_test = sum_up_data(test, client.CLIENT.KLINE_INTERVAL_1MINUTE)
-        plot_sym_train_test(show_train, show_test)
+        plot_dataset = sum_up_data(dataset, args.plot, "15MIN")
+        plot_sym_train_test(plot_dataset, split_ratio)
