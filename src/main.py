@@ -19,10 +19,9 @@ if __name__ == "__main__":
         build_dataset()
 
     dataset = load_dataset()
-    print(('BNBUSDT', np.array(dataset.loc[:, :, 1523942100000:1523943000000])))
 
     split_ratio = 0.7
 
     if args.plot:
-        plot_dataset = sum_up_data(dataset, args.plot, "15MIN")
+        plot_dataset = sum_up_data(dataset, args.plot, "1MIN")
         plot_sym_train_test(plot_dataset, split_ratio)
