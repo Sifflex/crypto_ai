@@ -4,6 +4,8 @@ import csv
 import warnings
 from pathlib import Path
 
+import math
+import numpy as np
 import pandas as pd
 from plotly.graph_objs import Candlestick, Figure
 
@@ -75,69 +77,6 @@ def build_dataset():
             print("100 %")
             print(symbol, " done")
 
-
-def create_pytorch_dataset(symbol, interval, split_ratio=0.7):
-    """Build a pytorch dataset based on the input symbol"""
-
-    str_interval = (
-        "1MIN" if interval == client.CLIENT.KLINE_INTERVAL_1MINUTE else "15MIN"
-    )
-    btc_names = [
-        "BTC open time",
-        "BTC open",
-        "BTC high",
-        "BTC low",
-        "BTC close",
-        "BTC close time",
-    ]
-    sym_names = ["open time", "open", "high", "low", "close", "close time"]
-    btc_df = pd.read_csv(
-        Path("data", "csv", f"{str_interval}_BTCUSDT.csv"), names=btc_names
-    )
-    sym_df = pd.read_csv(
-        Path("data", "csv", f"{str_interval}_{symbol}.csv"), names=btc_names
-    )
-    pd.read_csv("data/csv/" + str_interval + "_" + symbol + ".csv", names=sym_names)
-
-    # Resizing the dataframes in order to have the same first Open Time
-    open_btc = btc_df["BTC open time"][0]
-    open_sym = sym_df["open time"][0]
-    if open_btc < open_sym:
-        btc_start_index = btc_df.index[btc_df["BTC open time"] == open_sym][0]
-        btc_df = btc_df[btc_start_index:]
-        btc_df.reset_index(drop=True, inplace=True)
-    elif open_btc > open_sym:
-        sym_start_index = sym_df[sym_df["open time"] == open_btc][0]
-        sym_df = sym_df[sym_start_index:]
-        sym_df.reset_index(drop=True, inplace=True)
-
-    # Same for the last Open Time
-    if len(btc_df) < len(sym_df):
-        sym_df = sym_df[: len(btc_df)]
-    else:
-        btc_df = btc_df[: len(sym_df)]
-
-    btc_sym_df = btc_df.join(sym_df)
-    btc_sym_df = btc_sym_df.drop("BTC open time", 1)
-    btc_sym_df = btc_sym_df[
-        [
-            "BTC open",
-            "BTC high",
-            "BTC low",
-            "BTC close",
-            "open",
-            "high",
-            "low",
-            "close",
-        ]
-    ]
-
-    index_split = int(len(btc_sym_df) * split_ratio)
-    train = btc_sym_df[:index_split]
-    test = btc_sym_df[index_split:]
-    return (train, test)
-
-
 def load_dataset():
     """Load all csv files into one dataframe with 3 levels"""
 
@@ -171,3 +110,15 @@ def load_dataset():
     del df["close time"]
 
     return df
+
+def split_train_test_val(df, symbol, interval, test_ratio=0.2, validation_ratio=0.2):
+    train_ratio = 1.0 - test_ratio - validation_ratio
+    open_times = df.loc[symbol, interval, :].index.get_level_values(2).unique().to_numpy(dtype=np.uint64)
+    train_test_date_split = open_times[math.floor(open_times.shape[0] * train_ratio)]
+    test_validation_date_split = open_times[math.floor(open_times.shape[0] * (train_ratio + test_ratio))]
+    print(df.shape)
+    train = df.loc[:, :, :train_test_date_split]
+    test = df.loc[:, :, train_test_date_split:test_validation_date_split]
+    validation = df.loc[:, :, test_validation_date_split:]
+    print(train.shape, test.shape, validation.shape)
+    return (train, test, validation)

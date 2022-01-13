@@ -39,15 +39,15 @@ def sum_up_data(df, symbol, interval):
         ],
     )
 
-def plot_sym_train_test(df, split_ratio):
+def plot_sym_train_test(df, test_ratio=0.2, validation_ratio=0.2):
     df_copy = df.copy()
-    print(df)
     df_copy["Open Time"] = pd.to_datetime(df["Open Time"], unit="ms")
     df_copy["Open"] = df_copy["Open"].apply(math.log2)
     df_copy["Close"] = df_copy["Close"].apply(math.log2)
     df_copy["High"] = df_copy["High"].apply(math.log2)
     df_copy["Low"] = df_copy["Low"].apply(math.log2)
-    date_split = df_copy["Open Time"][math.floor(df_copy.shape[0] * split_ratio)]
+    train_test_date_split = df_copy["Open Time"][math.floor(df_copy.shape[0] * (1.0 - test_ratio - validation_ratio))]
+    test_validation_date_split = df_copy["Open Time"][math.floor(df_copy.shape[0] * (1.0 - validation_ratio))]
     data = [
         Candlestick(
             x=df_copy["Open Time"],
@@ -62,18 +62,27 @@ def plot_sym_train_test(df, split_ratio):
     layout = {
         "shapes": [
             {
-                "x0": date_split,
-                "x1": date_split,
+                "x0": train_test_date_split,
+                "x1": train_test_date_split,
                 "y0": 0,
                 "y1": 1,
                 "xref": "x",
                 "yref": "paper",
                 "line": {"color": "rgb(0,0,0)", "width": 1},
+            },
+            {
+                "x0": test_validation_date_split,
+                "x1": test_validation_date_split,
+                "y0": 0,
+                "y1": 1,
+                "xref": "x",
+                "yref": "paper",
+                "line": {"color": "rgb(0,0,0)", "width": 1}, 
             }
         ],
         "annotations": [
             {
-                "x": date_split,
+                "x": train_test_date_split,
                 "y": 1.0,
                 "xref": "x",
                 "yref": "paper",
@@ -82,13 +91,22 @@ def plot_sym_train_test(df, split_ratio):
                 "text": " test data",
             },
             {
-                "x": date_split,
+                "x": train_test_date_split,
                 "y": 1.0,
                 "xref": "x",
                 "yref": "paper",
                 "showarrow": False,
                 "xanchor": "right",
                 "text": "train data ",
+            },
+            {
+                "x": test_validation_date_split,
+                "y": 1.0,
+                "xref": "x",
+                "yref": "paper",
+                "showarrow": False,
+                "xanchor": "left",
+                "text": "validation data ",
             },
         ],
     }
