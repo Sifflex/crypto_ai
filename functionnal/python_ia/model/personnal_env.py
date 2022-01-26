@@ -13,7 +13,7 @@ class CustomEnv(gym.Env):
     BUY = 1
     SELL = 2
 
-    def __init__(self, df, initial_balance, n_iteration, comission, start_at = 0):
+    def __init__(self, df, initial_balance, n_iteration, comission, start_at=0):
         super(CustomEnv, self).__init__()
         # Define action and observation space
         # They must be gym.spaces objects
@@ -32,18 +32,20 @@ class CustomEnv(gym.Env):
         self.sell_at = df.iloc[self.current_index]['close']
         self.portion = 0
 
-        number_of_actions = 3  #Buy, Sell, Hodl
-        
+        number_of_actions = 3  # Buy, Sell, Hodl
+
         self.current_price = df.iloc[self.current_index]['close']
-        self.action_space = spaces.Box(low=np.array([0, 0]), high=np.array([3, 1])) #amount
-        
+        self.action_space = spaces.Box(low=np.array(
+            [0, 0]), high=np.array([3, 1]))  # amount
+
         self.initial_balance = initial_balance
         self.n_iteration = n_iteration
         self.comission = comission
 
         # Example for using image as input:
         #self.observation_space = spaces.Box(low=np.full((8,), -np.inf), high=np.full((8,), np.inf), dtype=np.float32)
-        self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(1, 8), dtype=np.float32)
+        self.observation_space = spaces.Box(
+            low=-np.inf, high=np.inf, shape=(1, 8), dtype=np.float32)
 
     def _next_observation(self):
         obs = np.array([
@@ -55,9 +57,9 @@ class CustomEnv(gym.Env):
             self.df.loc[self.current_index, 'Volume USDT'],
             self.df.loc[self.current_index, 'day_of_the_week'],
             self.df.loc[self.current_index, 'hour_of_the_day']
-            #self.current_balance,
-            #self.current_held,
-            #self.current_price
+            # self.current_balance,
+            # self.current_held,
+            # self.current_price
         ])
         return obs
 
@@ -72,32 +74,33 @@ class CustomEnv(gym.Env):
         self.take_action = action
         self.current_price = self.df.iloc[self.current_index - 1]['close']
         reward = 0
-        done = bool(self.current_index >= self.df.shape[0] or self.current_iteration >= self.max_iteration)
+        done = bool(self.current_index >=
+                    self.df.shape[0] or self.current_iteration >= self.max_iteration)
 
         self.done = done
         old_balance = self.current_balance
 
         action_type = action[0]
-        amount = action[1] #Percentage
+        amount = action[1]  # Percentage
         self.portion = amount * self.current_balance
 
-        if action_type < 1: #HODL
+        if action_type < 1:  # HODL
             self.last_action = "HOLD"
             reward = self.buy_at - self.current_price
-        elif action_type < 2: #BUY
+        elif action_type < 2:  # BUY
             self.buy_at = self.current_price
             self.last_action = "BUY"
             buy = (amount * self.current_balance) / self.current_price
-            self.current_held += buy
+            self.current_held += buy * (1 - (self.comission / 100))
             self.current_balance -= (amount * self.current_balance)
             reward = self.sell_at - self.current_price
-        elif action_type < 3: #SELL
+        elif action_type < 3:  # SELL
             can_sell = self.current_held * self.current_price
             selling = self.current_held * amount
             benef = selling * self.current_price
             self.last_action = "SELL"
             self.current_held -= selling
-            self.current_balance += benef 
+            self.current_balance += benef * (1 - (self.comission / 100))
             self.sell_at = self.current_price
             reward = self.current_price - self.buy_at
 
@@ -105,7 +108,6 @@ class CustomEnv(gym.Env):
         self.current_iteration += 1
 
         return self._next_observation(), reward, done, {}
-
 
     def render(self, mode='human'):
         print(f'-----------------------------------------------')
@@ -117,13 +119,15 @@ class CustomEnv(gym.Env):
         print(f'Current Price: {self.current_price} USDT')
         print(f'Current Hodl: {self.current_held} BTC')
         print(f'portion choosen: {self.portion}')
-        print(f'Profit: {(self.current_balance + (self.current_held * self.current_price))- self.initial_balance}')
+        print(
+            f'Profit: {(self.current_balance + (self.current_held * self.current_price))- self.initial_balance}')
         #print(f'Taken action: {self.take_action}')
-        
 
     def close(self):
         print('Simulation done')
-        print(f'went from {self.initial_balance} to {(self.current_balance + self.current_held * self.current_price)}')
-        profit = (self.current_balance + self.current_held * self.current_price) - self.initial_balance
+        print(
+            f'went from {self.initial_balance} to {(self.current_balance + self.current_held * self.current_price)}')
+        profit = (self.current_balance + self.current_held *
+                  self.current_price) - self.initial_balance
         print(f'Profit is {profit}')
         sys.exit(0)

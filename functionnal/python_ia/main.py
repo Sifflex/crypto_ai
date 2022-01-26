@@ -14,9 +14,11 @@ from stable_baselines.common import make_vec_env
 from stable_baselines.common import vec_env
 from stable_baselines import PPO2
 
+
 def save_object(obj, filename):
     with open(filename, 'wb') as outp:  # Overwrites any existing file.
         pickle.dump(obj, outp)
+
 
 df = execute('./Binance_BTCUSDT_minute.csv')
 print('-----------------')
@@ -24,7 +26,7 @@ print(df.loc[5: 10].columns)
 #df = read_csv('./Binance_BTCUSDT_minute.csv')
 #env = vec_env.DummyVecEnv([lambda: StockTradingEnvironment(df)])
 #env =  vec_env.DummyVecEnv([lambda: BitcoinTradingEnv(df, commission=0, serial=False)])
-env = make_vec_env(lambda: CustomEnv(df, 10000, 250000, 0.2, 500))
+env = make_vec_env(lambda: CustomEnv(df, 10000, 250000, 0.1, 500))
 
 model = PPO2("MlpPolicy", env, verbose=1)
 model.learn(total_timesteps=25000)
@@ -32,10 +34,13 @@ model.learn(total_timesteps=25000)
 # Enjoy trained agent
 dones = False
 obs = env.reset()
+i = 0
 while not dones:
     action, _states = model.predict(obs)
     obs, rewards, dones, info = env.step(action)
-    env.render()
+    i += 1
+    if i % 1000 == 0:
+        env.render()
 
 #final = model
 #save_object(final, 'model.tradebot')
