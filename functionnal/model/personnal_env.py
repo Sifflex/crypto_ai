@@ -43,24 +43,22 @@ class CustomEnv(gym.Env):
 
         # Example for using image as input:
         #self.observation_space = spaces.Box(low=np.full((8,), -np.inf), high=np.full((8,), np.inf), dtype=np.float32)
-        self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(1, 11), dtype=np.float32)
+        self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(1, 8), dtype=np.float32)
 
     def _next_observation(self):
-        frame = np.array([
-            [self.df.loc[self.current_index, 'open']],
-            [self.df.loc[self.current_index, 'high']],
-            [self.df.loc[self.current_index, 'low']],
-            [self.df.loc[self.current_index, 'close']],
-            [self.df.loc[self.current_index, 'Volume BTC']],
-            [self.df.loc[self.current_index, 'Volume USDT']],
-            [self.df.loc[self.current_index, 'day_of_the_week']],
-            [self.df.loc[self.current_index, 'hour_of_the_day']]
+        obs = np.array([
+            self.df.loc[self.current_index, 'open'],
+            self.df.loc[self.current_index, 'high'],
+            self.df.loc[self.current_index, 'low'],
+            self.df.loc[self.current_index, 'close'],
+            self.df.loc[self.current_index, 'Volume BTC'],
+            self.df.loc[self.current_index, 'Volume USDT'],
+            self.df.loc[self.current_index, 'day_of_the_week'],
+            self.df.loc[self.current_index, 'hour_of_the_day']
+            #self.current_balance,
+            #self.current_held,
+            #self.current_price
         ])
-        obs = np.append(frame, [[
-            self.current_balance,
-            self.current_held,
-            self.current_price
-        ]])
         return obs
 
     def reset(self):
@@ -75,8 +73,7 @@ class CustomEnv(gym.Env):
         self.current_price = self.df.iloc[self.current_index - 1]['close']
         reward = 0
         done = bool(self.current_index >= self.df.shape[0] or self.current_iteration >= self.max_iteration)
-        if done:
-            self.close()
+
         self.done = done
         old_balance = self.current_balance
 
