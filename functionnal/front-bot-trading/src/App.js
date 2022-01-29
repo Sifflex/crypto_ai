@@ -3,8 +3,57 @@ import './App.css';
 import { VictoryCandlestick } from 'victory-candlestick';
 import { VictoryBar, VictoryChart, VictoryTheme, VictoryAxis } from 'victory';
 import { Container, Row, Col } from 'react-bootstrap';
+import { useState } from 'react';
+
+let data = [];
+let int = undefined
+let candle_data = []
+function create_left(a, b, c) {
+  return (
+    <Row>
+      <Col style={{ textAlign: 'left', fontWeight: '300', fontSize: '1.1em', color: 'green' }}>{a}</Col>
+      <Col style={{ textAlign: 'left', fontWeight: '300', fontSize: '1.1em', color: 'green' }}>{b}</Col>
+      <Col style={{ textAlign: 'left', fontWeight: '300', fontSize: '1.1em', color: 'green' }}>{c}</Col>
+    </Row>
+  )
+}
+
+function useForceUpdate(){
+  const [value, setValue] = useState(0); // integer state
+  return () => setValue(value => value + 1); // update the state to force render
+}
 
 function App() {
+  const forceUpdate = useForceUpdate();
+  clearTimeout(int)
+  int = setTimeout(() => {
+    fetch('http://localhost:3010/data').then(e => e.json()).then(e => {
+      
+    data.push(e);
+      
+      if (data.length > 25) {
+        data.shift();
+      }
+      candle_data = [];
+      //{ x: new Date(2016, 6, 2), open: 10, close: 15, high: 20, low: 5 }
+      for (let i = 0 ; i < data.length ; i++)
+      {
+        let t = Date.parse(data[i][1]);
+        candle_data.push(
+          {
+            x: new Date(t),
+            open: parseFloat(data[i][3], 10),
+            close: parseFloat(data[i][6], 10),
+            high: parseFloat(data[i][4], 10),
+            low: parseFloat(data[i][5], 10)
+          })
+        
+      }
+
+      forceUpdate();
+    })
+  }, 1000)
+  //const [data, setData] = useState(undefined);
   return (
     <Container className='App' fluid>
       <Row className='nav' style={{ height: '7vh' }}>
@@ -35,101 +84,56 @@ function App() {
 
         </Col>
       </Row>
-      <Row>
-        <Col style={{ border: '1px solid #4c515c', borderLeft: '0', borderTop: '0', padding: '1%'}}>
+      <Row >
+        <Col style={{ border: '1px solid #4c515c', borderLeft: '0', borderTop: '0', padding: '1%' }}>
           <Row>
-            <Col style={{ textAlign: 'center', fontWeight: '600', fontSize: '1.1em'}}>Tracking</Col>
+            <Col style={{ textAlign: 'center', fontWeight: '600', fontSize: '1.1em' }}>Tracking</Col>
           </Row>
-          <Row style={{marginTop: '3%'}}>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em'}}>Time</Col>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em'}}>Prix</Col>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em'}}>Volume</Col>
+          <Row style={{ marginTop: '3%' }}>
+            <Col style={{ textAlign: 'left', fontWeight: '300', fontSize: '1.1em' }}>Time</Col>
+            <Col style={{ textAlign: 'left', fontWeight: '300', fontSize: '1.1em' }}>Prix</Col>
+            <Col style={{ textAlign: 'left', fontWeight: '300', fontSize: '1.1em' }}>Volume</Col>
           </Row>
-          <Row>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'green'}}>20:45:15</Col>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'green'}}>3600</Col>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'green'}}>799999</Col>
-          </Row>
-          <Row>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'green'}}>20:45:15</Col>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'green'}}>3600</Col>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'green'}}>799999</Col>
-          </Row>
-          <Row>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'green'}}>20:45:15</Col>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'green'}}>3600</Col>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'green'}}>799999</Col>
-          </Row>
-          <Row>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'green'}}>20:45:15</Col>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'green'}}>3600</Col>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'green'}}>799999</Col>
-          </Row>
-          <Row>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'green'}}>20:45:15</Col>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'green'}}>3600</Col>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'green'}}>799999</Col>
-          </Row>
+          {data.map((e, i) => {
+            //console.log(e);
+            //create_left(e.date, e.close, e['Volume BTC']);
+            return (create_left(e[1].substring(11), e[6].substring(0, 10), e[7].substring(0, 10)))
+          })}
         </Col>
         <Col sm={6}>
           <VictoryChart
             theme={VictoryTheme.material}
-            domainPadding={{ x: 10 }}
+            domainPadding={{ x: 5 }}
             scale={{ x: "time" }}
           >
 
             <VictoryAxis dependentAxis />
             <VictoryCandlestick
               candleColors={{ positive: "green", negative: "red" }}
-              candleRatio={0.2}
-              data={[
-                { x: new Date(2016, 6, 1), open: 5, close: 10, high: 15, low: 0 },
-                { x: new Date(2016, 6, 2), open: 10, close: 15, high: 20, low: 5 },
-                { x: new Date(2016, 6, 3), open: 15, close: 20, high: 22, low: 10 },
-                { x: new Date(2016, 6, 4), open: 20, close: 10, high: 25, low: 7 },
-                { x: new Date(2016, 6, 6), open: 20, close: 10, high: 25, low: 7 },
-                { x: new Date(2016, 6, 7), open: 20, close: 10, high: 25, low: 7 },
-                { x: new Date(2016, 6, 8), open: 20, close: 10, high: 25, low: 7 },
-                { x: new Date(2016, 6, 9), open: 20, close: 10, high: 25, low: 7 },
-                { x: new Date(2016, 6, 10), open: 20, close: 10, high: 25, low: 7 },
-                { x: new Date(2016, 6, 11), open: 20, close: 10, high: 25, low: 7 },
-                { x: new Date(2016, 6, 12), open: 20, close: 10, high: 25, low: 7 },
-                { x: new Date(2016, 6, 13), open: 20, close: 10, high: 25, low: 7 },
-                { x: new Date(2016, 6, 14), open: 20, close: 10, high: 25, low: 7 },
-                { x: new Date(2016, 6, 15), open: 20, close: 10, high: 25, low: 7 },
-                { x: new Date(2016, 6, 16), open: 20, close: 10, high: 25, low: 7 },
-                { x: new Date(2016, 6, 17), open: 20, close: 10, high: 25, low: 7 },
-                { x: new Date(2016, 6, 18), open: 20, close: 10, high: 25, low: 7 },
-                { x: new Date(2016, 6, 19), open: 20, close: 10, high: 25, low: 7 },
-                { x: new Date(2016, 6, 20), open: 20, close: 10, high: 25, low: 7 },
-                { x: new Date(2016, 6, 21), open: 20, close: 10, high: 25, low: 7 },
-                { x: new Date(2016, 6, 22), open: 20, close: 10, high: 25, low: 7 },
-                { x: new Date(2016, 6, 23), open: 20, close: 10, high: 25, low: 7 },
-                { x: new Date(2016, 6, 24), open: 20, close: 10, high: 25, low: 7 },
-                { x: new Date(2016, 6, 25), open: 10, close: 8, high: 15, low: 5 }
-              ]}
+              candleRatio={0.7}
+              data={candle_data}
             />
           </VictoryChart>
         </Col>
-        
-        <Col style={{ border: '1px solid #4c515c', borderRight: '0', borderTop: '0', padding: '1%'}}>
+
+        <Col style={{ border: '1px solid #4c515c', borderRight: '0', borderTop: '0', padding: '1%' }}>
           <Row>
-            <Col style={{ textAlign: 'center', fontWeight: '600', fontSize: '1.1em'}}>Bot Moves</Col>
+            <Col style={{ textAlign: 'center', fontWeight: '600', fontSize: '1.1em' }}>Bot Moves</Col>
           </Row>
-          <Row style={{marginTop: '3%'}}>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em'}}>Type</Col>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em'}}>Price</Col>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em'}}>Volume</Col>
-          </Row>
-          <Row>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'red'}}>Buy</Col>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'red'}}>3600</Col>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'red'}}>0.001</Col>
+          <Row style={{ marginTop: '3%' }}>
+            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em' }}>Type</Col>
+            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em' }}>Price</Col>
+            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em' }}>Volume</Col>
           </Row>
           <Row>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'green'}}>Sell</Col>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'green'}}>3598</Col>
-            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'green'}}>0.002</Col>
+            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'red' }}>Buy</Col>
+            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'red' }}>3600</Col>
+            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'red' }}>0.001</Col>
+          </Row>
+          <Row>
+            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'green' }}>Sell</Col>
+            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'green' }}>3598</Col>
+            <Col style={{ textAlign: 'center', fontWeight: '300', fontSize: '1.1em', color: 'green' }}>0.002</Col>
           </Row>
         </Col>
       </Row>
