@@ -1,5 +1,5 @@
 
-const WebSocket = require('ws');
+const WebSocket = require('websocket').client;
 
 var btcs = new WebSocket("wss://ws.blockchain.info/inv");
 
