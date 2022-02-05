@@ -1,4 +1,21 @@
 const Web3 = require('web3');
+const CreateCsvWriter = require('csv-writer').createObjectCsvWriter;
+
+const csvWriter = CreateCsvWriter({
+    path: 'sent.csv',
+    header: [
+        {id: 'value', title: 'Value'},
+        {id: 'timestamp', title: 'Timestamp'}
+    ]
+});
+
+const csvWriterRecieved = CreateCsvWriter({
+    path: 'recieved.csv',
+    header: [
+        {id: 'value', title: 'Value'},
+        {id: 'timestamp', title: 'Timestamp'}
+    ]
+});
 
 class TransactionChecker {
     web3;
@@ -11,6 +28,8 @@ class TransactionChecker {
         this.web3 = new Web3(new Web3.providers.HttpProvider('https://rinkeby.infura.io/v3/' + projectId));
         this.account = account.toLowerCase();
     }
+
+    
 
     subscribe(topic) {
         this.subscription = this.web3ws.eth.subscribe(topic, (err, res) => {
@@ -28,12 +47,26 @@ class TransactionChecker {
                         if (this.account == tx.from.toLowerCase()) {
                             console.log("sent transaction");
                             console.log({address: tx.from, value: this.web3.utils.fromWei(tx.value, 'ether'), timestamp: new Date()});
+                            const records = [
+                                {value: this.web3.utils.fromWei(tx.value, 'ether'), timestamp: new Date()}
+                            ];
+                            csvWriter.writeRecords(records)
+                                .then(() => {
+                                    console.log('Done');
+                                })
                         }
                     }
                     if (tx != null && tx.to != null) {
                         if (this.account == tx.to.toLowerCase()) {
                             console.log("recieved transaction");
                             console.log({address: tx.from, value: this.web3.utils.fromWei(tx.value, 'ether'), timestamp: new Date()});
+                            const records = [
+                                {value: this.web3.utils.fromWei(tx.value, 'ether'), timestamp: new Date()}
+                            ];
+                            csvWriterRecieved.writeRecords(records)
+                                .then(() => {
+                                    console.log('Done');
+                                })
                         }
                     }
                 } catch (err) {
@@ -44,6 +77,6 @@ class TransactionChecker {
     }
 }
 
-let txChecker = new TransactionChecker('395b95cd458c4164af14c5dbc4d4a0b8', '0x2a3EB93322873FbCC160F9d51f3CC4d8F0F539ED');
+let txChecker = new TransactionChecker('395b95cd458c4164af14c5dbc4d4a0b8', '0x5e2313dC13AA71dC0592717330723387E79240dc');
 txChecker.subscribe('pendingTransactions');
 txChecker.watchTransactions();
